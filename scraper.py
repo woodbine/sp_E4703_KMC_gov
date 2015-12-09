@@ -102,7 +102,6 @@ for link in links:
     if csvlink:
         if 'data of expenditure' in csvlink.text.strip():
             csvfile = csvlink.text.strip()
-            print csvfile
             linkfile = 'http://www.kirklees.gov.uk' + csvlink['href']
             csvMth = csvfile.split(' ')[0][:3]
             csvYr = csvfile.split(' ')[1]
