@@ -84,7 +84,7 @@ def convert_mth_strings ( mth_string ):
 #### VARIABLES 1.0
 
 entity_id = "E4703_KMC_gov"
-url = "http://www.kirklees.gov.uk/you-kmc/information/expenditureData.aspx"
+url = "http://www.kirklees.gov.uk/beta/information-and-data/expenditure-data.aspx"
 errors = 0
 data = []
 
@@ -95,33 +95,17 @@ soup = BeautifulSoup(html, 'lxml')
 
 #### SCRAPE DATA
 
-block = soup.find('div', attrs = {'id':'pageContent'})
-links = block.find_all('li')
+block = soup.find('dl', attrs = {'class':'accordion'})
+links = block.find_all('a')
 for link in links:
-    csvlink = link.find('a', 'csvLink')
-    if csvlink:
-        if 'data of expenditure' in csvlink.text.strip():
-            csvfile = csvlink.text.strip()
-            linkfile = 'http://www.kirklees.gov.uk' + csvlink['href']
-            csvMth = csvfile.split(' ')[0][:3]
+    csvlink = 'http://www.kirklees.gov.uk'+link['href']
+    if '.csv' in csvlink or '.xls' in csvlink or '.xlsx' in csvlink or '.pdf' in csvlink:
+        if 'expendit' in csvlink and 'purchasing' not in csvlink:
+            csvfile = link.text.strip()
+            csvMth = csvfile[:3]
             csvYr = csvfile.split(' ')[1]
             csvMth = convert_mth_strings(csvMth.upper())
-            data.append([csvYr, csvMth, linkfile])
-    else:
-        try:
-            pdflink = link.find('a', 'pdfLink')
-        except:
-            pass
-        if pdflink:
-            if u'data of expenditure above £500' in pdflink.text:
-                csvfile = pdflink.text.strip()
-                linkfile = 'http://www.kirklees.gov.uk' + pdflink['href']
-                csvMth = csvfile.split(' ')[0][:3]
-                csvYr = csvfile.split(' ')[1]
-                csvMth = convert_mth_strings(csvMth.upper())
-                data.append([csvYr, csvMth, linkfile])
-        else:
-            break
+            data.append([csvYr, csvMth, csvlink])
 
 #### STORE DATA 1.0
 
@@ -134,7 +118,7 @@ for row in data:
     valid = validate(filename, file_url)
 
     if valid == True:
-        scraperwiki.sqlite.save(unique_keys=['l'], data={"l": file_url, "f": filename, "d": todays_date })
+        scraperwiki.sqlite.save(unique_keys=['f'], data={"l": file_url, "f": filename, "d": todays_date })
         print filename
     else:
         errors += 1
